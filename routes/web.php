@@ -1,36 +1,71 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LayananSuratController;
+use App\Http\Controllers\AdminSuratController;
 use Illuminate\Support\Facades\Route;
 
-// Beranda
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+/*
+|--------------------------------------------------------------------------
+| FRONTEND ROUTES (Halaman Pengunjung / Warga)
+|--------------------------------------------------------------------------
+*/
 
-// Kelompok Menu: Profil Desa
-Route::prefix('profil')->name('profil.')->group(function () {
-    Route::get('/tentang', function () { return view('profil.tentang'); })->name('tentang');
-    Route::get('/aparatur', function () { return view('profil.aparatur'); })->name('aparatur');
-    Route::get('/statistik', function () { return view('profil.statistik'); })->name('statistik');
+Route::get('/', function () { return view('welcome'); })->name('home');
+
+Route::get('/profil/tentang', function () { return view('profil.tentang'); })->name('profil.tentang');
+Route::get('/profil/aparatur', function () { return view('profil.aparatur'); })->name('profil.aparatur');
+Route::get('/profil/statistik', function () { return view('profil.statistik'); })->name('profil.statistik');
+
+Route::get('/publikasi/berita', function () { return view('publikasi.berita'); })->name('publikasi.berita');
+Route::get('/publikasi/pengumuman', function () { return view('publikasi.pengumuman'); })->name('publikasi.pengumuman');
+Route::get('/publikasi/galeri', function () { return view('publikasi.galeri'); })->name('publikasi.galeri');
+
+Route::get('/layanan/surat', function () { return view('layanan.surat'); })->name('layanan.surat');
+Route::get('/layanan/berkas', function () { return view('layanan.berkas'); })->name('layanan.berkas');
+Route::get('/layanan/pengaduan', function () { return view('layanan.pengaduan'); })->name('layanan.pengaduan');
+
+Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
+
+/*
+|--------------------------------------------------------------------------
+| ROUTES FORMULIR PENGAJUAN SURAT (Public)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/layanan/surat/form/domisili', function () { return view('layanan.form.domisili'); })->name('layanan.form.domisili');
+Route::post('/layanan/surat/form/domisili', [LayananSuratController::class, 'storeDomisili'])->name('layanan.submit.domisili');
+
+
+/*
+|--------------------------------------------------------------------------
+| BACKEND ROUTES (Halaman Admin / Perangkat Desa) - DIAMANKAN AUTH
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Kelompok Menu: Publikasi
-Route::prefix('publikasi')->name('publikasi.')->group(function () {
-    Route::get('/berita', function () { return view('publikasi.berita'); })->name('berita');
-    Route::get('/pengumuman', function () { return view('publikasi.pengumuman'); })->name('pengumuman');
-    Route::get('/galeri', function () { return view('publikasi.galeri'); })->name('galeri');
+// ROUTE KHUSUS ADMIN SURAT
+Route::middleware(['auth', 'verified'])->prefix('admin/surat')->group(function () {
+    Route::get('/', [AdminSuratController::class, 'index'])->name('admin.surat.index');
+    Route::get('/{id}', [AdminSuratController::class, 'show'])->name('admin.surat.show');
+    Route::put('/{id}', [AdminSuratController::class, 'update'])->name('admin.surat.update');
+    
+    // RUTE KEAMANAN: Jalur untuk merender gambar sensitif KTP & KK (Raw File)
+    Route::get('/dokumen/lihat/{filename}', [AdminSuratController::class, 'tampilkanDokumen'])->name('admin.dokumen.show');
+    
+    // RUTE BARU: Halaman Pratinjau Dokumen dengan tombol kembali (HTML View)
+    Route::get('/dokumen/halaman/{filename}', [AdminSuratController::class, 'halamanDokumen'])->name('admin.dokumen.page');
+    // RUTE BARU: Cetak PDF Surat
+    Route::get('/cetak/{id}', [AdminSuratController::class, 'cetakPdf'])->name('admin.surat.cetak');
 });
-
-// Kelompok Menu: Layanan (Sub-menu Pengajuan Berkas ditambahkan di sini)
-Route::prefix('layanan')->name('layanan.')->group(function () {
-    Route::get('/surat-online', function () { return view('layanan.surat'); })->name('surat');
-    Route::get('/pengaduan', function () { return view('layanan.pengaduan'); })->name('pengaduan');
-    Route::get('/pengajuan-berkas', function () { return view('layanan.berkas'); })->name('berkas');
-});
-
-// Menu: Kontak
-Route::get('/kontak', function () { 
-    return view('kontak'); 
-})->name('kontak');
 
 require __DIR__.'/auth.php';
