@@ -21,7 +21,6 @@ Route::get('/publikasi/berita', function () { return view('publikasi.berita'); }
 Route::get('/publikasi/pengumuman', function () { return view('publikasi.pengumuman'); })->name('publikasi.pengumuman');
 Route::get('/publikasi/galeri', function () { return view('publikasi.galeri'); })->name('publikasi.galeri');
 
-Route::get('/layanan/surat', function () { return view('layanan.surat'); })->name('layanan.surat');
 Route::get('/layanan/berkas', function () { return view('layanan.berkas'); })->name('layanan.berkas');
 Route::get('/layanan/pengaduan', function () { return view('layanan.pengaduan'); })->name('layanan.pengaduan');
 
@@ -33,7 +32,13 @@ Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
 |--------------------------------------------------------------------------
 */
 
+// Rute Halaman Utama Surat (Sudah diarahkan ke Controller untuk fitur Lacak)
+Route::get('/layanan/surat', [LayananSuratController::class, 'indexSurat'])->name('layanan.surat');
+
+// RUTE YANG HILANG: Untuk menampilkan halaman formulir domisili
 Route::get('/layanan/surat/form/domisili', function () { return view('layanan.form.domisili'); })->name('layanan.form.domisili');
+
+// Rute Submit Form Domisili
 Route::post('/layanan/surat/form/domisili', [LayananSuratController::class, 'storeDomisili'])->name('layanan.submit.domisili');
 
 // RUTE BARU: Fitur Cek Status / Pelacakan Resi Surat Warga

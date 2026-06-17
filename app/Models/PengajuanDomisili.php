@@ -9,9 +9,8 @@ class PengajuanDomisili extends Model
 {
     use HasFactory;
 
-    // Menambahkan 'kode_resi' agar bisa disimpan oleh sistem
     protected $fillable = [
-        'kode_resi', 
+        'kode_lacak', // <--- TAMBAHKAN INI
         'nik', 'nama', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin',
         'agama', 'status_perkawinan', 'pekerjaan', 'alamat', 'kecamatan',
         'kabupaten', 'provinsi', 'foto_ktp', 'foto_kk', 'status', 'catatan_admin'

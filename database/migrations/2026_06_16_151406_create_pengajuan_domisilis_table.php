@@ -10,10 +10,7 @@ return new class extends Migration
     {
         Schema::create('pengajuan_domisilis', function (Blueprint $table) {
             $table->id();
-            
-            // KOLOM BARU: Kode unik untuk pelacakan warga
-            $table->string('kode_resi')->unique(); 
-            
+            $table->string('kode_lacak')->unique()->nullable(); // <--- TAMBAHKAN KOLOM INI
             $table->string('nik', 16);
             $table->string('nama');
             $table->string('tempat_lahir');
