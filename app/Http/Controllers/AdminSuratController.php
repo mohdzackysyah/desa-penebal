@@ -68,12 +68,11 @@ class AdminSuratController extends Controller
         return view('admin.surat.view_dokumen', compact('filename'));
     }
 
-    // FUNGSI CETAK PDF (Hanya Buka di Browser sebagai Preview)
+    // MODIFIKASI TOTAL: FUNGSI CETAK PDF (Anti IDM)
     public function cetakPdf($id)
     {
         $pengajuan = PengajuanDomisili::findOrFail($id);
 
-        // Pastikan hanya surat yang sudah diverifikasi yang bisa dicetak
         if ($pengajuan->status !== 'diverifikasi') {
             return redirect()->back()->withErrors(['Surat belum diverifikasi dan tidak dapat dicetak.']);
         }
@@ -84,9 +83,10 @@ class AdminSuratController extends Controller
         // Atur ukuran kertas ke A4 Portrait
         $pdf->setPaper('A4', 'portrait');
 
-        $namaFile = 'Surat_Domisili_' . $pengajuan->nik . '.pdf';
-        
-        // Parameter ['Attachment' => false] memastikan browser memuat file untuk dilihat, bukan diunduh
-        return $pdf->stream($namaFile, ['Attachment' => false]);
+        // Mengubah output PDF menjadi string teks Base64 (IDM tidak bisa membaca ini sebagai file download)
+        $pdfBase64 = base64_encode($pdf->output());
+
+        // Mengembalikan sebuah VIEW HTML, bukan mengirim header file PDF
+        return view('admin.surat.preview_pdf', compact('pdfBase64', 'pengajuan'));
     }
 }
