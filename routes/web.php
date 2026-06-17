@@ -36,6 +36,9 @@ Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
 Route::get('/layanan/surat/form/domisili', function () { return view('layanan.form.domisili'); })->name('layanan.form.domisili');
 Route::post('/layanan/surat/form/domisili', [LayananSuratController::class, 'storeDomisili'])->name('layanan.submit.domisili');
 
+// RUTE BARU: Fitur Cek Status / Pelacakan Resi Surat Warga
+Route::post('/layanan/cek-status', [LayananSuratController::class, 'cekStatus'])->name('layanan.cek-status');
+
 
 /*
 |--------------------------------------------------------------------------

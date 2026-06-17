@@ -14,15 +14,25 @@
         </div>
 
         @if(session('success'))
-        <div class="mb-8 bg-green-50 border-l-4 border-[#24a148] p-4 rounded-r-lg shadow-sm">
-            <div class="flex items-center">
-                <svg class="h-6 w-6 text-[#24a148] mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <div>
-                    <h3 class="text-green-800 font-bold text-lg">Berhasil!</h3>
-                    <p class="text-green-700 text-sm mt-1">{{ session('success') }}</p>
+            <div class="bg-[#EDFDF3] border border-[#24a148] p-6 mb-8 rounded-2xl shadow-lg relative overflow-hidden animate-fade-in-up">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-[#24a148] opacity-10 rounded-bl-full pointer-events-none"></div>
+                <h3 class="text-[#116936] font-black text-xl flex items-center relative z-10">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Pengajuan Berhasil Dikirim!
+                </h3>
+                <p class="text-green-800 mt-2 font-medium relative z-10">Mohon simpan <strong class="text-black">KODE RESI</strong> pelacakan dokumen Anda di bawah ini:</p>
+                
+                @if(session('kode_resi'))
+                <div class="mt-4 bg-white border-2 border-dashed border-[#24a148] p-4 rounded-xl text-center shadow-inner relative z-10">
+                    <span class="text-3xl md:text-4xl font-black text-gray-900 tracking-[0.2em]">{{ session('kode_resi') }}</span>
                 </div>
+                @endif
+                
+                <p class="text-xs text-green-700 mt-4 font-bold flex items-center relative z-10">
+                    <svg class="w-4 h-4 mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Simpan atau Screenshot layar ini. Gunakan kode tersebut di fitur "Lacak Status Surat" untuk mengetahui perkembangan dokumen Anda.
+                </p>
             </div>
-        </div>
         @endif
 
         @if ($errors->any())
@@ -206,4 +216,21 @@
     updateFileName('foto_ktp', 'teks_ktp');
     updateFileName('foto_kk', 'teks_kk');
 </script>
+
+<style>
+    /* Animasi muncul dari bawah ke atas */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+</style>
 @endsection

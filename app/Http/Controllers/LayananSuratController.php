@@ -10,10 +10,10 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class LayananSuratController extends Controller
 {
-    // Method untuk memproses pengajuan domisili
+    // Method untuk memproses form pengajuan dari warga
     public function storeDomisili(Request $request)
     {
-        // 1. Validasi Input Keamanan (Penerapan SSDLC: Mencegah Malicious Input)
+        // 1. Validasi Input
         $validated = $request->validate([
             'nik' => 'required|numeric|digits:16',
             'nama' => 'required|string|max:255',
@@ -27,53 +27,48 @@ class LayananSuratController extends Controller
             'kecamatan' => 'required|string',
             'kabupaten' => 'required|string',
             'provinsi' => 'required|string',
-            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:10240', // Maksimal 10MB
+            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:10240',
             'foto_kk' => 'required|image|mimes:jpeg,png,jpg|max:10240',
         ]);
 
-        // 2. Inisialisasi Image Manager (Library Kompresi)
         $manager = new ImageManager(new Driver());
         $pathKtp = null;
         $pathKk = null;
 
-        // 3. Proses Auto-Compression Foto KTP & Simpan ke Folder Private
+        // 2. Proses Kompresi KTP
         if ($request->hasFile('foto_ktp')) {
             $ktp = $request->file('foto_ktp');
             $namaFileKtp = 'KTP_' . $validated['nik'] . '_' . Str::random(5) . '.jpg';
-            
             $imageKtp = $manager->read($ktp);
-            $imageKtp->scaleDown(width: 800); // Batasi lebar max 800px
+            $imageKtp->scaleDown(width: 800);
             
-            // Lokasi penyimpanan SANGAT AMAN (Private Storage)
             $pathKtpLokasi = storage_path('app/private/dokumen/');
-            if (!file_exists($pathKtpLokasi)) {
-                mkdir($pathKtpLokasi, 0755, true);
-            }
-            $imageKtp->save($pathKtpLokasi . $namaFileKtp, quality: 75);
+            if (!file_exists($pathKtpLokasi)) mkdir($pathKtpLokasi, 0755, true);
             
-            $pathKtp = $namaFileKtp; // Simpan nama filenya saja ke DB
+            $imageKtp->save($pathKtpLokasi . $namaFileKtp, quality: 75);
+            $pathKtp = $namaFileKtp;
         }
 
-        // 4. Proses Auto-Compression Foto KK & Simpan ke Folder Private
+        // 3. Proses Kompresi KK
         if ($request->hasFile('foto_kk')) {
             $kk = $request->file('foto_kk');
             $namaFileKk = 'KK_' . $validated['nik'] . '_' . Str::random(5) . '.jpg';
-            
             $imageKk = $manager->read($kk);
-            $imageKk->scaleDown(width: 1000); // KK butuh sedikit lebih lebar
+            $imageKk->scaleDown(width: 1000);
             
-            // Lokasi penyimpanan SANGAT AMAN (Private Storage)
             $pathKkLokasi = storage_path('app/private/dokumen/');
-            if (!file_exists($pathKkLokasi)) {
-                mkdir($pathKkLokasi, 0755, true);
-            }
-            $imageKk->save($pathKkLokasi . $namaFileKk, quality: 75);
+            if (!file_exists($pathKkLokasi)) mkdir($pathKkLokasi, 0755, true);
             
-            $pathKk = $namaFileKk; // Simpan nama filenya saja ke DB
+            $imageKk->save($pathKkLokasi . $namaFileKk, quality: 75);
+            $pathKk = $namaFileKk;
         }
+
+        // 4. GENERATE KODE RESI UNIK 
+        $kodeResi = 'DOM-' . strtoupper(Str::random(8));
 
         // 5. Simpan Data ke Database
         PengajuanDomisili::create([
+            'kode_resi' => $kodeResi,
             'nik' => $validated['nik'],
             'nama' => $validated['nama'],
             'tempat_lahir' => $validated['tempat_lahir'],
@@ -91,7 +86,26 @@ class LayananSuratController extends Controller
             'status' => 'menunggu'
         ]);
 
-        // 6. Redirect dengan pesan sukses
-        return redirect()->back()->with('success', 'Pengajuan berhasil dikirim! File gambar Anda telah otomatis dikompresi dan disimpan secara aman. Silakan tunggu verifikasi admin.');
+        // 6. Redirect dan berikan Kode Resi ke Warga
+        return redirect()->back()->with([
+            'success' => 'Pengajuan berhasil dikirim!',
+            'kode_resi' => $kodeResi
+        ]);
+    }
+
+    // Method untuk warga mengecek status surat dari kode resi
+    public function cekStatus(Request $request)
+    {
+        $request->validate([
+            'kode_resi' => 'required|string'
+        ]);
+
+        $pengajuan = PengajuanDomisili::where('kode_resi', $request->kode_resi)->first();
+
+        if (!$pengajuan) {
+            return redirect()->back()->with('error_resi', 'Kode Resi tidak ditemukan. Pastikan kode yang dimasukkan sudah benar.');
+        }
+
+        return redirect()->back()->with('status_pengajuan', $pengajuan);
     }
 }
