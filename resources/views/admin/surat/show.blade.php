@@ -35,7 +35,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.surat.update', $pengajuan->id) }}" method="POST" class="space-y-8">
+            <form action="{{ route('admin.surat.update', $pengajuan->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 @method('PUT')
                 
@@ -51,12 +51,29 @@
                             <select name="status" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-[#116936] focus:border-[#116936] sm:text-sm font-semibold bg-gray-50 focus:bg-white transition-colors">
                                 <option value="menunggu" {{ $pengajuan->status == 'menunggu' ? 'selected' : '' }}>⏳ Menunggu Pengecekan</option>
                                 <option value="diverifikasi" {{ $pengajuan->status == 'diverifikasi' ? 'selected' : '' }}>✅ Diverifikasi (ACC)</option>
+                                <option value="selesai" {{ $pengajuan->status == 'selesai' ? 'selected' : '' }}>🎉 Selesai (Surat Siap)</option>
                                 <option value="ditolak" {{ $pengajuan->status == 'ditolak' ? 'selected' : '' }}>❌ Ditolak / Salah Data</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Catatan Evaluasi <span class="text-gray-400 normal-case tracking-normal">(Wajib jika ditolak)</span></label>
                             <textarea name="catatan_admin" rows="2" placeholder="Contoh: NIK pada form berbeda dengan KTP..." class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-[#116936] focus:border-[#116936] sm:text-sm bg-gray-50 focus:bg-white transition-colors">{{ old('catatan_admin', $pengajuan->catatan_admin) }}</textarea>
+                        </div>
+
+                        <div class="md:col-span-3 mt-2 pt-5 border-t border-gray-200">
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Unggah Dokumen Hasil (PDF / Scan Surat TTD)</label>
+                            <p class="text-xs text-gray-500 mb-3">Unggah surat yang sudah ditandatangani di sini dan ubah status ke <strong>Selesai</strong> agar warga bisa mengunduhnya secara online.</p>
+                            <input type="file" name="file_surat_hasil" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#EDFDF3] file:text-[#116936] hover:file:bg-green-100 border border-gray-300 rounded-md bg-white cursor-pointer transition-colors">
+                            
+                            @if($pengajuan->file_surat_hasil)
+                            <div class="mt-4 bg-green-50 border border-green-200 p-3 rounded-md flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <div>
+                                    <p class="text-sm text-green-800 font-bold">Dokumen resmi sudah terunggah.</p>
+                                    <p class="text-xs text-green-700 mt-0.5">Warga sudah bisa mengunduhnya melalui resi pelacakan.</p>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -68,6 +85,17 @@
                     </div>
                     
                     <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        
+                        <div class="md:col-span-2 mb-2">
+                            <div class="bg-[#EDFDF3] border border-[#24a148]/40 p-4 rounded-lg flex items-center justify-between shadow-inner">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-[#116936] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                                    <span class="block text-sm font-bold text-[#116936] uppercase tracking-wide">Kode Resi Pelacakan</span>
+                                </div>
+                                <span class="font-mono text-xl md:text-2xl font-black text-gray-900 tracking-widest bg-white px-4 py-1 rounded border border-gray-200">{{ $pengajuan->kode_lacak ?? 'TIDAK ADA' }}</span>
+                            </div>
+                        </div>
+
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Nomor Induk Kependudukan (NIK)</label>
                             <input type="text" name="nik" value="{{ old('nik', $pengajuan->nik) }}" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-[#116936] focus:border-[#116936] sm:text-sm bg-gray-50 focus:bg-white transition-colors">
@@ -178,13 +206,21 @@
                 <div class="bg-gray-50 shadow-sm border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row justify-between items-center gap-6">
                     
                     <div class="flex items-center w-full md:w-auto text-left">
-                        @if($pengajuan->status === 'diverifikasi')
+                        @if($pengajuan->status === 'selesai')
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 mr-4 border border-blue-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 leading-tight">Status: Selesai</h4>
+                                <p class="text-xs text-gray-500">Surat sudah bisa diunduh oleh warga.</p>
+                            </div>
+                        @elseif($pengajuan->status === 'diverifikasi')
                             <div class="w-12 h-12 bg-green-100 text-[#116936] rounded-full flex items-center justify-center shrink-0 mr-4 border border-[#24a148]/30">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             </div>
                             <div>
                                 <h4 class="font-bold text-gray-900 leading-tight">Status: Diverifikasi</h4>
-                                <p class="text-xs text-gray-500">Berkas ini telah disetujui (ACC).</p>
+                                <p class="text-xs text-gray-500">Berkas disetujui, menunggu cetak/TTD.</p>
                             </div>
                         @elseif($pengajuan->status === 'ditolak')
                             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center shrink-0 mr-4 border border-red-200">

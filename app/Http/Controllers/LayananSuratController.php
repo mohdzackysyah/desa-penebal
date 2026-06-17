@@ -86,7 +86,7 @@ class LayananSuratController extends Controller
 
         // 6. Simpan Data ke Database beserta Kode Lacak
         PengajuanDomisili::create([
-            'kode_lacak' => $kodeLacak, // <--- TAMBAHKAN INI
+            'kode_lacak' => $kodeLacak,
             'nik' => $validated['nik'],
             'nama' => $validated['nama'],
             'tempat_lahir' => $validated['tempat_lahir'],
@@ -105,6 +105,38 @@ class LayananSuratController extends Controller
         ]);
 
         // 7. Redirect dengan info Kode Lacak
-        return redirect()->back()->with('success', 'Pengajuan berhasil dikirim! Kode Lacak Anda adalah: <strong>' . $kodeLacak . '</strong>. Simpan kode ini untuk mengecek status surat Anda.');
+        return redirect()->back()
+            ->with('success', 'Pengajuan berhasil dikirim!')
+            ->with('kode_resi', $kodeLacak);
+    }
+
+    // Method untuk mengunduh dokumen (Download File langsung)
+    public function unduhSuratHasil($kode_lacak)
+    {
+        $surat = PengajuanDomisili::where('kode_lacak', $kode_lacak)->firstOrFail();
+
+        if ($surat->status === 'selesai' && $surat->file_surat_hasil) {
+            $path = storage_path('app/private/dokumen_hasil/' . $surat->file_surat_hasil);
+            if (file_exists($path)) {
+                return response()->download($path, 'Surat_Keterangan_Domisili_' . $surat->nama . '.' . pathinfo($path, PATHINFO_EXTENSION));
+            }
+        }
+
+        return abort(404, 'Dokumen belum tersedia atau tidak ditemukan.');
+    }
+
+    // Method untuk menampilkan dokumen di browser (Cetak / Preview)
+    public function lihatSuratHasil($kode_lacak)
+    {
+        $surat = PengajuanDomisili::where('kode_lacak', $kode_lacak)->firstOrFail();
+
+        if ($surat->status === 'selesai' && $surat->file_surat_hasil) {
+            $path = storage_path('app/private/dokumen_hasil/' . $surat->file_surat_hasil);
+            if (file_exists($path)) {
+                return response()->file($path); // <-- Terbuka langsung di tab browser
+            }
+        }
+
+        return abort(404, 'Dokumen belum tersedia atau tidak ditemukan.');
     }
 }

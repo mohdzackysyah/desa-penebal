@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PengajuanDomisili;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\File;
 
 class AdminSuratController extends Controller
 {
@@ -24,6 +25,7 @@ class AdminSuratController extends Controller
     {
         $pengajuan = PengajuanDomisili::findOrFail($id);
 
+        // 1. Validasi Input, tambahkan status 'selesai' dan validasi file unggahan
         $validated = $request->validate([
             'nik' => 'required|numeric|digits:16',
             'nama' => 'required|string|max:255',
@@ -37,13 +39,37 @@ class AdminSuratController extends Controller
             'kecamatan' => 'required|string',
             'kabupaten' => 'required|string',
             'provinsi' => 'required|string',
-            'status' => 'required|in:menunggu,diverifikasi,ditolak',
+            'status' => 'required|in:menunggu,diverifikasi,ditolak,selesai', // Ditambah 'selesai'
             'catatan_admin' => 'nullable|string',
+            'file_surat_hasil' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // Maks 5MB
         ]);
 
+        // 2. Proses upload file surat hasil jika admin mengunggahnya
+        if ($request->hasFile('file_surat_hasil')) {
+            $file = $request->file('file_surat_hasil');
+            
+            // Buat penamaan file yang unik dan rapi
+            $namaFile = 'SURAT_HASIL_' . ($pengajuan->kode_lacak ?? $pengajuan->nik) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            
+            // Tentukan lokasi folder aman (private)
+            $pathLokasi = storage_path('app/private/dokumen_hasil/');
+            
+            // Buat folder jika belum ada
+            if (!file_exists($pathLokasi)) {
+                mkdir($pathLokasi, 0755, true);
+            }
+            
+            // Pindahkan file ke folder tujuan
+            $file->move($pathLokasi, $namaFile);
+            
+            // Masukkan nama file ke array tervalidasi agar ikut tersimpan ke DB
+            $validated['file_surat_hasil'] = $namaFile;
+        }
+
+        // 3. Update data pengajuan ke database
         $pengajuan->update($validated);
 
-        return redirect()->back()->with('success', 'Data pengajuan atas nama ' . $pengajuan->nama . ' berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Data pengajuan atas nama ' . $pengajuan->nama . ' beserta statusnya berhasil diperbarui!');
     }
 
     public function tampilkanDokumen($filename)

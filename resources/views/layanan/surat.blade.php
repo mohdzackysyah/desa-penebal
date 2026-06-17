@@ -61,6 +61,46 @@
                                 </div>
                             @endif
                         </div>
+
+                        @if(strtolower($surat->status) == 'selesai' && $surat->file_surat_hasil)
+                            <div class="mt-6 pt-5 border-t border-gray-200">
+                                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#EDFDF3] p-5 rounded-xl border border-[#24a148]/30 shadow-sm">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-[#24a148] text-white rounded-full flex items-center justify-center shrink-0 mr-4 shadow-sm">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold text-[#116936] text-base">Surat Anda Telah Selesai!</h5>
+                                            <p class="text-xs text-green-800 mt-1">Dokumen resmi yang telah ditandatangani sudah tersedia dan siap dicetak.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                        
+                                        <button onclick="document.getElementById('preview-surat').classList.toggle('hidden')" type="button" class="flex-1 sm:flex-none justify-center bg-white border border-[#24a148] text-[#116936] hover:bg-green-50 px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm flex items-center transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            Lihat Surat
+                                        </button>
+                                        
+                                        <a href="{{ route('layanan.lihat-hasil', $surat->kode_lacak) }}" target="_blank" class="flex-1 sm:flex-none justify-center bg-[#116936] hover:bg-[#0c4d27] text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm flex items-center transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                            Cetak Surat
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div id="preview-surat" class="hidden mt-4 p-2 bg-gray-200 border border-gray-300 rounded-lg shadow-inner">
+                                    <div class="bg-white p-3 rounded flex justify-between items-center mb-2">
+                                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Pratinjau Dokumen Resmi</span>
+                                        <a href="{{ route('layanan.unduh-hasil', $surat->kode_lacak) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-3 py-1.5 rounded border border-blue-200">
+                                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            Download File
+                                        </a>
+                                    </div>
+                                    <iframe src="{{ route('layanan.lihat-hasil', $surat->kode_lacak) }}" class="w-full h-[600px] border-0 rounded bg-white"></iframe>
+                                </div>
+                            </div>
+                        @endif
+
                     </div>
                 @elseif(request()->has('kode_lacak'))
                     <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700 text-sm">
@@ -70,6 +110,7 @@
                 @endif
             </div>
         </div>
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             
             <a href="{{ route('layanan.form.domisili') }}" class="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-200 transition-all duration-300 flex flex-col items-center text-center relative overflow-hidden">

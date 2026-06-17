@@ -32,16 +32,22 @@ Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
 |--------------------------------------------------------------------------
 */
 
-// Rute Halaman Utama Surat (Sudah diarahkan ke Controller untuk fitur Lacak)
+// Rute Halaman Utama Surat & Lacak
 Route::get('/layanan/surat', [LayananSuratController::class, 'indexSurat'])->name('layanan.surat');
 
-// RUTE YANG HILANG: Untuk menampilkan halaman formulir domisili
+// Rute Unduh Surat Hasil (Selesai)
+Route::get('/layanan/surat/unduh-hasil/{kode_lacak}', [LayananSuratController::class, 'unduhSuratHasil'])->name('layanan.unduh-hasil');
+
+// Rute Lihat/Cetak Surat Hasil (Selesai)
+Route::get('/layanan/surat/lihat-hasil/{kode_lacak}', [LayananSuratController::class, 'lihatSuratHasil'])->name('layanan.lihat-hasil');
+
+// Rute untuk menampilkan halaman formulir domisili
 Route::get('/layanan/surat/form/domisili', function () { return view('layanan.form.domisili'); })->name('layanan.form.domisili');
 
 // Rute Submit Form Domisili
 Route::post('/layanan/surat/form/domisili', [LayananSuratController::class, 'storeDomisili'])->name('layanan.submit.domisili');
 
-// RUTE BARU: Fitur Cek Status / Pelacakan Resi Surat Warga
+// Rute Cek Status 
 Route::post('/layanan/cek-status', [LayananSuratController::class, 'cekStatus'])->name('layanan.cek-status');
 
 
@@ -63,17 +69,17 @@ Route::middleware('auth')->group(function () {
 
 // ROUTE KHUSUS ADMIN SURAT
 Route::middleware(['auth', 'verified'])->prefix('admin/surat')->group(function () {
+    // 1. Rute Index (Daftar Antrean)
     Route::get('/', [AdminSuratController::class, 'index'])->name('admin.surat.index');
+    
+    // 2. RUTE SPESIFIK (HARUS DI ATAS RUTE {id})
+    Route::get('/dokumen/lihat/{filename}', [AdminSuratController::class, 'tampilkanDokumen'])->name('admin.dokumen.show');
+    Route::get('/dokumen/halaman/{filename}', [AdminSuratController::class, 'halamanDokumen'])->name('admin.dokumen.page');
+    Route::get('/cetak/{id}', [AdminSuratController::class, 'cetakPdf'])->name('admin.surat.cetak');
+    
+    // 3. RUTE DINAMIS (HARUS DI BAWAH)
     Route::get('/{id}', [AdminSuratController::class, 'show'])->name('admin.surat.show');
     Route::put('/{id}', [AdminSuratController::class, 'update'])->name('admin.surat.update');
-    
-    // RUTE KEAMANAN: Jalur untuk merender gambar sensitif KTP & KK (Raw File)
-    Route::get('/dokumen/lihat/{filename}', [AdminSuratController::class, 'tampilkanDokumen'])->name('admin.dokumen.show');
-    
-    // RUTE BARU: Halaman Pratinjau Dokumen dengan tombol kembali (HTML View)
-    Route::get('/dokumen/halaman/{filename}', [AdminSuratController::class, 'halamanDokumen'])->name('admin.dokumen.page');
-    // RUTE BARU: Cetak PDF Surat
-    Route::get('/cetak/{id}', [AdminSuratController::class, 'cetakPdf'])->name('admin.surat.cetak');
 });
 
 require __DIR__.'/auth.php';
